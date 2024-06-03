@@ -38,6 +38,7 @@ public:
     size_t order() const;
     size_t degree(const Vertex& v) const;
     std::vector<Vertex> walk_in_width(const Vertex& start_vertex) const;
+    void print() const;
 
 private:
     std::unordered_map<Vertex, std::vector<Edge>> adjacencies_list;
@@ -104,7 +105,7 @@ bool Graph<Vertex, Distance>::remove_edge(const Edge& e) {
 template<typename Vertex, typename Distance>
 bool Graph<Vertex, Distance>::has_edge(const Vertex& from, const Vertex& to) const {
     if (!has_vertex(from)) return false;
-    const auto& edges = adjacencies_list[from];
+    const auto& edges = adjacencies_list.at(from);  
     return std::any_of(edges.begin(), edges.end(), [&](const Edge& e) { return e.to == to; });
 }
 
@@ -158,3 +159,20 @@ std::vector<Vertex> Graph<Vertex, Distance>::walk_in_width(const Vertex& start_v
     return result;
 }
 
+template<typename Vertex, typename Distance>
+void Graph<Vertex, Distance>::print() const {
+    for (const auto& pair : adjacencies_list) {
+        const Vertex& vertex = pair.first;
+        const auto& edges = pair.second;
+        std::cout << vertex << " -> ";
+        bool first = true;
+        for (const auto& edge : edges) {
+            if (!first) {
+                std::cout << ", ";
+            }
+            std::cout << edge.to << "(" << edge.distance << ")";
+            first = false;
+        }
+        std::cout << std::endl;
+    }
+}
