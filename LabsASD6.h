@@ -39,6 +39,7 @@ public:
     size_t degree(const Vertex& v) const;
     std::vector<Vertex> walk_in_width(const Vertex& start_vertex) const;
     void print() const;
+    std::pair<std::vector<Edge>, Distance> dijkstras_algorithm(const Vertex& from, const Vertex& to) const;
 
 private:
     std::unordered_map<Vertex, std::vector<Edge>> adjacencies_list;
@@ -175,4 +176,60 @@ void Graph<Vertex, Distance>::print() const {
         }
         std::cout << std::endl;
     }
+}
+
+template<typename Vertex, typename Distance>
+std::pair<std::vector<typename Graph<Vertex, Distance>::Edge>, Distance>
+Graph<Vertex, Distance>::dijkstras_algorithm(const Vertex& from, const Vertex& to) const {
+    std::unordered_map<Vertex, Distance> distances;
+    std::unordered_map<Vertex, Vertex> predecessors;
+    std::priority_queue<std::pair<Distance, Vertex>, std::vector<std::pair<Distance, Vertex>>, std::greater<>> pq;
+
+    for (const auto& vertex : vertices()) {
+        distances[vertex] = std::numeric_limits<Distance>::infinity();
+        predecessors[vertex] = Vertex();
+    }
+    distances[from] = Distance();
+    pq.push(std::make_pair(distances[from], from));
+
+    while (!pq.empty()) {
+        Distance current_distance = pq.top().first;
+        Vertex current_vertex = pq.top().second;
+        pq.pop();
+
+        if (current_distance > distances[current_vertex]) {
+            continue;
+        }
+
+        for (const auto& edge : adjacencies_list.at(current_vertex)) {
+            if (edge.distance < 0) {
+                std::cerr << "Error: Graph contains negative-weight edges" << std::endl;
+                return std::make_pair(std::vector<Edge>(), std::numeric_limits<Distance>::infinity());
+            }
+            Distance new_distance = current_distance + edge.distance;
+            if (new_distance < distances[edge.to]) {
+                distances[edge.to] = new_distance;
+                predecessors[edge.to] = current_vertex;
+                pq.push(std::make_pair(new_distance, edge.to));
+            }
+        }
+    }
+
+    std::vector<Edge> path;
+    Distance shortest_distance = distances[to];
+    if (shortest_distance == std::numeric_limits<Distance>::infinity()) {
+        return std::make_pair(path, std::numeric_limits<Distance>::infinity());
+    }
+
+    for (Vertex at = to; at != from; at = predecessors[at]) {
+        Vertex pred = predecessors[at];
+        auto it = std::find_if(adjacencies_list.at(pred).begin(), adjacencies_list.at(pred).end(),
+            [&at](const Edge& edge) { return edge.to == at; });
+        if (it != adjacencies_list.at(pred).end()) {
+            path.push_back(*it);
+        }
+    }
+
+    std::reverse(path.begin(), path.end());
+    return std::make_pair(path, shortest_distance);
 }

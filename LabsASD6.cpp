@@ -1,7 +1,31 @@
 ﻿#include "LabsASD6.h"
 
 int main() {
-    Graph<int> g;
+    Graph<int, double> graph;
+
+    graph.add_vertex(1);
+    graph.add_vertex(2);
+    graph.add_vertex(3);
+    graph.add_edge(1, 2, 2.0);
+    graph.add_edge(2, 3, 3.0);
+    graph.add_edge(1, 3, 6.0);
+    int from_vertex = 1;
+    int to_vertex = 3;
+    auto [path, shortest_distance] = graph.dijkstras_algorithm(from_vertex, to_vertex);
+
+    if (shortest_distance != std::numeric_limits<double>::infinity()) {
+        std::cout << "Shortest path from " << from_vertex << " to " << to_vertex << " with distance " << shortest_distance << " is:";
+        for (const auto& edge : path) {
+            std::cout << " (" << edge.from << "->" << edge.to << ")";
+        }
+        std::cout << std::endl;
+    }
+    else {
+        std::cout << "There is no path from " << from_vertex << " to " << to_vertex << std::endl;
+    }
+
+    return 0;
+    /*Graph<int> g;
 
     g.add_vertex(1);
     g.add_vertex(2);
@@ -47,7 +71,7 @@ int main() {
     for (int v : bfs) {
         std::cout << v << " ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     return 0;
 }
