@@ -40,6 +40,7 @@ public:
     std::vector<Vertex> walk_in_width(const Vertex& start_vertex) const;
     void print() const;
     std::pair<std::vector<Edge>, Distance> dijkstras_algorithm(const Vertex& from, const Vertex& to) const;
+    Vertex farthest_from_neighbors() const;
 
 private:
     std::unordered_map<Vertex, std::vector<Edge>> adjacencies_list;
@@ -232,4 +233,37 @@ Graph<Vertex, Distance>::dijkstras_algorithm(const Vertex& from, const Vertex& t
 
     std::reverse(path.begin(), path.end());
     return std::make_pair(path, shortest_distance);
+}
+
+template<typename Vertex, typename Distance>
+Vertex Graph<Vertex, Distance>::farthest_from_neighbors() const {
+    if (adjacencies_list.empty()) {
+        std::cerr << "The graph is empty" << std::endl;
+        return Vertex(); 
+    }
+
+    Vertex farthest_vertex = Vertex(); 
+    double max_avg_distance = -1.0;
+
+    for (const auto& pair : adjacencies_list) {
+        const Vertex& vertex = pair.first;
+        const auto& edges = pair.second;
+
+        double total_distance = 0.0;
+        int neighbor_count = 0;
+
+        for (const auto& edge : edges) {
+            total_distance += edge.distance;
+            ++neighbor_count;
+        }
+
+        double avg_distance = neighbor_count > 0 ? total_distance / neighbor_count : 0.0;
+
+        if (avg_distance > max_avg_distance || (avg_distance == max_avg_distance && vertex < farthest_vertex)) {
+            max_avg_distance = avg_distance;
+            farthest_vertex = vertex;
+        }
+    }
+
+    return farthest_vertex;
 }

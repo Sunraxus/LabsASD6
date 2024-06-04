@@ -1,7 +1,26 @@
 ﻿#include "LabsASD6.h"
 
 int main() {
-    Graph<int, double> graph;
+    Graph<std::string, double> g;
+
+    g.add_vertex("A");
+    g.add_vertex("B");
+    g.add_vertex("C");
+    g.add_vertex("D");
+
+    g.add_edge("A", "B", 1.0);
+    g.add_edge("A", "C", 2.0);
+    g.add_edge("B", "C", 1.5);
+    g.add_edge("C", "D", 3.0);
+    g.add_edge("D", "A", 2.5);
+
+    g.print();
+
+    std::string farthest_traumapoint = g.farthest_from_neighbors();
+    std::cout << "The farthest traumapoint is: " << farthest_traumapoint << std::endl;
+
+    return 0;
+    /*Graph<int, double> graph;
 
     graph.add_vertex(1);
     graph.add_vertex(2);
@@ -25,7 +44,7 @@ int main() {
     }
 
     return 0;
-    /*Graph<int> g;
+    Graph<int> g;
 
     g.add_vertex(1);
     g.add_vertex(2);
