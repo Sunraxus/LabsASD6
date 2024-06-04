@@ -25,15 +25,15 @@ public:
         }
     };
 
-    bool has_vertex(const Vertex& v) const;
+    bool has_vertex(const Vertex& v) const; 
     void add_vertex(const Vertex& v);
     bool remove_vertex(const Vertex& v);
     std::vector<Vertex> vertices() const;
     void add_edge(const Vertex& from, const Vertex& to, const Distance& d);
     bool remove_edge(const Vertex& from, const Vertex& to);
-    bool remove_edge(const Edge& e);
+    bool remove_edge(const Edge& e); 
     bool has_edge(const Vertex& from, const Vertex& to) const;
-    bool has_edge(const Edge& e) const;
+    bool has_edge(const Edge& e) const; 
     std::vector<Edge> edges(const Vertex& vertex);
     size_t order() const;
     size_t degree(const Vertex& v) const;
@@ -61,10 +61,8 @@ bool Graph<Vertex, Distance>::remove_vertex(const Vertex& v) {
     if (!has_vertex(v)) return false;
     adjacencies_list.erase(v);
     for (auto& [vertex, edges] : adjacencies_list) {
-        edges.erase(
-            std::remove_if(edges.begin(), edges.end(), [&](const Edge& e) { return e.to == v; }),
-            edges.end()
-        );
+        auto iter = std::remove_if(edges.begin(), edges.end(), [&](const Edge& e) { return e.to == v; });
+        edges.erase(iter, edges.end());
     }
     return true;
 }
@@ -80,6 +78,12 @@ std::vector<Vertex> Graph<Vertex, Distance>::vertices() const {
 
 template<typename Vertex, typename Distance>
 void Graph<Vertex, Distance>::add_edge(const Vertex& from, const Vertex& to, const Distance& d) {
+    if (!has_vertex(from)) {
+        add_vertex(from);
+    }
+    if (!has_vertex(to)) {
+        add_vertex(to);
+    }
     auto& edges = adjacencies_list[from];
     edges.emplace_back(from, to, d);
 }
@@ -107,7 +111,7 @@ bool Graph<Vertex, Distance>::remove_edge(const Edge& e) {
 template<typename Vertex, typename Distance>
 bool Graph<Vertex, Distance>::has_edge(const Vertex& from, const Vertex& to) const {
     if (!has_vertex(from)) return false;
-    const auto& edges = adjacencies_list.at(from);  
+    const auto& edges = adjacencies_list.at(from);
     return std::any_of(edges.begin(), edges.end(), [&](const Edge& e) { return e.to == to; });
 }
 
@@ -180,12 +184,45 @@ void Graph<Vertex, Distance>::print() const {
 }
 
 template<typename Vertex, typename Distance>
+Vertex Graph<Vertex, Distance>::farthest_from_neighbors() const {
+    if (adjacencies_list.empty()) {
+        std::cerr << "The graph is empty" << std::endl;
+        return Vertex();
+    }
+
+    Vertex farthest_vertex = Vertex();
+    double max_avg_distance = -1.0;
+
+    for (const auto& pair : adjacencies_list) {
+        const Vertex& vertex = pair.first;
+        const auto& edges = pair.second;
+
+        double total_distance = 0.0;
+        int neighbor_count = 0;
+
+        for (const auto& edge : edges) {
+            total_distance += edge.distance;
+            ++neighbor_count;
+        }
+
+        double avg_distance = neighbor_count > 0 ? total_distance / neighbor_count : 0.0;
+
+        if (avg_distance > max_avg_distance || (avg_distance == max_avg_distance && vertex < farthest_vertex)) {
+            max_avg_distance = avg_distance;
+            farthest_vertex = vertex;
+        }
+    }
+
+    return farthest_vertex;
+}
+
+template<typename Vertex, typename Distance>
 std::pair<std::vector<typename Graph<Vertex, Distance>::Edge>, Distance>
 Graph<Vertex, Distance>::dijkstras_algorithm(const Vertex& from, const Vertex& to) const {
     std::unordered_map<Vertex, Distance> distances;
     std::unordered_map<Vertex, Vertex> predecessors;
     std::priority_queue<std::pair<Distance, Vertex>, std::vector<std::pair<Distance, Vertex>>, std::greater<>> pq;
-
+    
     for (const auto& vertex : vertices()) {
         distances[vertex] = std::numeric_limits<Distance>::infinity();
         predecessors[vertex] = Vertex();
@@ -235,35 +272,4 @@ Graph<Vertex, Distance>::dijkstras_algorithm(const Vertex& from, const Vertex& t
     return std::make_pair(path, shortest_distance);
 }
 
-template<typename Vertex, typename Distance>
-Vertex Graph<Vertex, Distance>::farthest_from_neighbors() const {
-    if (adjacencies_list.empty()) {
-        std::cerr << "The graph is empty" << std::endl;
-        return Vertex(); 
-    }
 
-    Vertex farthest_vertex = Vertex(); 
-    double max_avg_distance = -1.0;
-
-    for (const auto& pair : adjacencies_list) {
-        const Vertex& vertex = pair.first;
-        const auto& edges = pair.second;
-
-        double total_distance = 0.0;
-        int neighbor_count = 0;
-
-        for (const auto& edge : edges) {
-            total_distance += edge.distance;
-            ++neighbor_count;
-        }
-
-        double avg_distance = neighbor_count > 0 ? total_distance / neighbor_count : 0.0;
-
-        if (avg_distance > max_avg_distance || (avg_distance == max_avg_distance && vertex < farthest_vertex)) {
-            max_avg_distance = avg_distance;
-            farthest_vertex = vertex;
-        }
-    }
-
-    return farthest_vertex;
-}
